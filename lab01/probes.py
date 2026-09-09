@@ -266,7 +266,7 @@ def probe_thermal_zones(root: Path = Path("/")) -> dict[str, Any]:
         if raw_temp is None:
             continue
         try:
-            millidegrees = int(raw_temp) / 1000
+            millidegrees = int(raw_temp)
         except ValueError:
             continue
         zone_type = read_text(root, f"/sys/class/thermal/{zone.name}/type")
@@ -276,7 +276,6 @@ def probe_thermal_zones(root: Path = Path("/")) -> dict[str, Any]:
         return unknown(src, "no thermal zone had a readable temp file")
 
     return {"value": max(zone["temp_c"] for zone in zones), "zones": zones, "source": src, "status": "ok"}
-
 
 def probe_power_mode(root: Path = Path("/"), nvpmodel_output: str | None = None) -> dict[str, Any]:
     """Which nvpmodel power mode is active?
