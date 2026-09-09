@@ -260,13 +260,10 @@ def probe_thermal_zones(root: Path = Path("/")) -> dict[str, Any]:
     src = "/sys/class/thermal/thermal_zone*/temp"
     base = Path(root) / "sys/class/thermal"
 
-    try:
-        zone_dirs = sorted(e.name for e in base.iterdir() if e.name.startswith("thermal_zone"))
-    except (OSError, FileNotFoundError):
-        return unknown(src, "sysfs thermal directory unreadable — /sys not mounted")
+    
 
     zones = []
-    for zone_name in zone_dirs:
+    for zone_name in sorted(base.glob("thermal_zone*")):
         raw_temp = read_text(root, f"/sys/class/thermal/{zone_name}/temp")
         if raw_temp is None:
             continue
