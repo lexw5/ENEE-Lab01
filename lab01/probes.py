@@ -262,7 +262,10 @@ def probe_thermal_zones(root: Path = Path("/")) -> dict[str, Any]:
 
     zones = []
     for zone in sorted(base.glob("thermal_zone*")):
-        raw_temp = read_text(root, f"/sys/class/thermal/{zone.name}/temp")
+        try:
+            raw_temp = read_text(root, f"/sys/class/thermal/{zone.name}/temp")
+        except TypeError:
+            continue
         if raw_temp is None:
             continue
         try:
@@ -277,6 +280,7 @@ def probe_thermal_zones(root: Path = Path("/")) -> dict[str, Any]:
 
     return {"value": max(zone["temp_c"] for zone in zones), "zones": zones, "source": src, "status": "ok"}
 
+    
 def probe_power_mode(root: Path = Path("/"), nvpmodel_output: str | None = None) -> dict[str, Any]:
     """Which nvpmodel power mode is active?
 
