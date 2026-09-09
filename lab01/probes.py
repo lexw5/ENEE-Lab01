@@ -260,25 +260,22 @@ def probe_thermal_zones(root: Path = Path("/")) -> dict[str, Any]:
     src = "/sys/class/thermal/thermal_zone*/temp"
     base = Path(root) / "sys/class/thermal"
 
-    
-
     zones = []
-    for zone_name in sorted(base.glob("thermal_zone*")):
-        raw_temp = read_text(root, f"/sys/class/thermal/{zone_name}/temp")
+    for zone in sorted(base.glob("thermal_zone*")):
+        raw_temp = read_text(root, f"/sys/class/thermal/{zone.name}/temp")
         if raw_temp is None:
             continue
         try:
-            millidegrees = int(raw_temp)
+            millidegrees = int(raw_temp) / 1000
         except ValueError:
             continue
-        zone_type = read_text(root, f"/sys/class/thermal/{zone_name}/type")
-        zones.append({"zone": zone_name, "type": zone_type, "temp_c": millidegrees / 1000.0})
+        zone_type = read_text(root, f"/sys/class/thermal/{zone.name}/type")
+        zones.append({"zone": zone.name, "type": zone_type, "temp_c": millidegrees / 1000.0})
 
     if not zones:
         return unknown(src, "no thermal zone had a readable temp file")
 
-    hottest = max(zones, key=lambda z: z["temp_c"])
-    return {"value": hottest["temp_c"], "zones": zones, "source": src, "status": "ok"}
+    return {"value": max(zone["temp_c"] for zone in zones), "zones": zones, "source": src, "status": "ok"}
 
 
 def probe_power_mode(root: Path = Path("/"), nvpmodel_output: str | None = None) -> dict[str, Any]:
